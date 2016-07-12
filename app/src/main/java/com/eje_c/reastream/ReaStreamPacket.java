@@ -6,18 +6,21 @@ import android.support.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Represents ReaStream packet data.
+ */
 public class ReaStreamPacket {
 
     public static final short MAX_BLOCK_LENGTH = 1200;
     public static final int PER_SAMPLE_BYTES = Float.SIZE / Byte.SIZE;
     public static final int PACKET_HEADER_BYTE_SIZE = 4 + 4 + 32 + 1 + 4 + 2;
 
-    public int packetSize;
-    public final byte[] identifier = new byte[32];
-    public byte channels = 1;
-    public int sampleRate = 44100;
-    public short blockLength;
-    public float[] audioData;
+    public int packetSize;                         // 4 bytes: int packetsize: 4+4+32+1+4+2+sblocklen
+    public final byte[] identifier = new byte[32]; // 32 bytes: identifier string (zero padded, last byte always 0)
+    public byte channels = 1;                      // 1 byte: char nch [1-64]
+    public int sampleRate = 44100;                 // 4 bytes: int samplerate
+    public short blockLength;                      // 2 bytes: short sblocklen -- largest supported is 1200 (larger blocks are separated)
+    public float[] audioData;                      // sblocklen bytes: sample data (32 bit floats, non-interleaved)
 
     /**
      * Set identifier with String.
@@ -107,6 +110,8 @@ public class ReaStreamPacket {
      * @param sampleCount Valid audio data sample count. Must be less than or equal to {@code audioData.length}.
      */
     public void setAudioData(@NonNull float[] audioData, int sampleCount) {
+
+        // TODO 2 or above channels support
         this.blockLength = (short) (sampleCount * PER_SAMPLE_BYTES);
         this.packetSize = PACKET_HEADER_BYTE_SIZE + blockLength;
         this.audioData = audioData;
