@@ -31,11 +31,19 @@ public class ReaStreamReceiver implements AutoCloseable {
      * @throws SocketException
      */
     public ReaStreamReceiver(int port) throws SocketException {
+        this(new DatagramSocket(port));
+    }
 
+    /**
+     * Create ReaStream receiver with UDP socket specific port.
+     *
+     * @param socket Pre-created socket
+     */
+    public ReaStreamReceiver(DatagramSocket socket) {
         buffer = ByteBuffer.allocate(ReaStreamPacket.MAX_BLOCK_LENGTH + ReaStreamPacket.PACKET_HEADER_BYTE_SIZE);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        socket = new DatagramSocket(port);
         packet = new DatagramPacket(buffer.array(), buffer.capacity());
+        this.socket = socket;
     }
 
     /**
