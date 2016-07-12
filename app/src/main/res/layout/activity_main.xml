@@ -62,6 +62,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/radioGroup_mode"
         android:hint="Remote address"
-        android:text="192.168.10.37"/>
+        android:text="@string/default_remoteAddress"/>
 
 </RelativeLayout>
