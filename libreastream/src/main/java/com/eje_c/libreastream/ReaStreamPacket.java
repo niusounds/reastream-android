@@ -1,7 +1,4 @@
-package com.eje_c.reastream;
-
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+package com.eje_c.libreastream;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -47,7 +44,7 @@ public class ReaStreamPacket {
      * @param buffer Buffer from received UDP raw packet.
      * @return {@code true} if buffer is ReaStream packet and have read, otherwise {@code false}.
      */
-    public boolean readFromBuffer(@NonNull ByteBuffer buffer) {
+    public boolean readFromBuffer(ByteBuffer buffer) {
         buffer.position(0);
 
         if (buffer.get() == (byte) 77// M
@@ -82,7 +79,7 @@ public class ReaStreamPacket {
      *
      * @param buffer
      */
-    public void writeToBuffer(@NonNull ByteBuffer buffer) {
+    public void writeToBuffer(ByteBuffer buffer) {
 
         buffer.position(0);
 
@@ -109,7 +106,7 @@ public class ReaStreamPacket {
      * @param audioData   Audio data.
      * @param sampleCount Valid audio data sample count. Must be less than or equal to {@code audioData.length}.
      */
-    public void setAudioData(@NonNull float[] audioData, int sampleCount) {
+    public void setAudioData(float[] audioData, int sampleCount) {
 
         // TODO 2 or above channels support
         this.blockLength = (short) (sampleCount * PER_SAMPLE_BYTES);
@@ -121,7 +118,7 @@ public class ReaStreamPacket {
      * @param buffer
      * @return {@code true} if buffer can be passed to {@link #writeToBuffer(ByteBuffer)}, otherwise {@code false}.
      */
-    public boolean isCapableBuffer(@Nullable ByteBuffer buffer) {
+    public boolean isCapableBuffer(ByteBuffer buffer) {
         return buffer != null && buffer.capacity() >= packetSize;
     }
 

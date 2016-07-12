@@ -1,4 +1,4 @@
-package com.eje_c.reastream;
+package com.eje_c.libreastream;
 
 import android.annotation.SuppressLint;
 import android.media.AudioFormat;
