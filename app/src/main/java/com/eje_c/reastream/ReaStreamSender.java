@@ -15,8 +15,15 @@ public class ReaStreamSender implements AutoCloseable {
     private ReaStreamPacket audioPacket = new ReaStreamPacket();
 
     public ReaStreamSender() throws SocketException {
+        this(new DatagramSocket());
+    }
 
-        socket = new DatagramSocket();
+    /**
+     * @param socket Pre-created socket
+     */
+    public ReaStreamSender(DatagramSocket socket) {
+
+        this.socket = socket;
         packet = new DatagramPacket(new byte[0], 0);
 
         setPort(ReaStream.DEFAULT_PORT);
