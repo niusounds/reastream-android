@@ -9,6 +9,7 @@ import android.media.MediaRecorder;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ReaStream implements AutoCloseable {
     public static final int DEFAULT_PORT = 58710;
@@ -20,6 +21,10 @@ public class ReaStream implements AutoCloseable {
     private boolean playing;
     private int sampleRate = 44100;
     private int bufferSize;
+    private ReaStreamSender sender;     // Non null while sending
+    private ReaStreamReceiver receiver; // Non null while receiving
+    private boolean enabled = true;
+    private InetAddress remoteAddress;
 
     public void startSending() {
 
@@ -78,6 +83,37 @@ public class ReaStream implements AutoCloseable {
         return playing;
     }
 
+    public void setIdentifier(String identifier) {
+
+        if (sender != null) {
+            sender.setIdentifier(identifier);
+        }
+
+        if (receiver != null) {
+            receiver.setIdentifier(identifier);
+        }
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setRemoteAddress(String remoteAddress) throws UnknownHostException {
+        setRemoteAddress(InetAddress.getByName(remoteAddress));
+    }
+
+    public void setRemoteAddress(InetAddress remoteAddress) {
+        this.remoteAddress = remoteAddress;
+
+        if (sender != null) {
+            sender.setRemoteAddress(remoteAddress);
+        }
+    }
+
     private class SenderThread extends Thread {
 
         @SuppressLint("NewApi")
@@ -85,10 +121,11 @@ public class ReaStream implements AutoCloseable {
         public void run() {
 
             try (ReaStreamSender sender = new ReaStreamSender()) {
+                ReaStream.this.sender = sender;
 
                 sender.setSampleRate(sampleRate);
                 sender.setChannels((byte) 1);
-                sender.setRemoteAddress(InetAddress.getByName("192.168.10.37"));
+                sender.setRemoteAddress(remoteAddress);
 
                 float[] recordBuffer = new float[bufferSize / FLOAT_BYTE_SIZE];
 
@@ -96,10 +133,12 @@ public class ReaStream implements AutoCloseable {
 
                     // Read from mic and send it
                     int readCount = record.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_NON_BLOCKING);
-                    if (readCount > 0) {
+                    if (enabled && readCount > 0) {
                         sender.send(recordBuffer, readCount);
                     }
                 }
+
+                ReaStream.this.sender = null;
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -114,12 +153,19 @@ public class ReaStream implements AutoCloseable {
         public void run() {
 
             try (ReaStreamReceiver receiver = new ReaStreamReceiver()) {
+
+                ReaStream.this.receiver = receiver;
+
                 float[] interleaved = new float[ReaStreamPacket.MAX_BLOCK_LENGTH / ReaStreamPacket.PER_SAMPLE_BYTES];
                 while (playing) {
-                    ReaStreamPacket audioPacket = receiver.receive();
-                    audioPacket.getInterleavedAudioData(interleaved);
-                    track.write(interleaved, 0, audioPacket.blockLength / ReaStreamPacket.PER_SAMPLE_BYTES, AudioTrack.WRITE_NON_BLOCKING);
+                    if (enabled) {
+                        ReaStreamPacket audioPacket = receiver.receive();
+                        audioPacket.getInterleavedAudioData(interleaved);
+                        track.write(interleaved, 0, audioPacket.blockLength / ReaStreamPacket.PER_SAMPLE_BYTES, AudioTrack.WRITE_NON_BLOCKING);
+                    }
                 }
+
+                ReaStream.this.receiver = null;
 
             } catch (IOException e) {
                 e.printStackTrace();
