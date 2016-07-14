@@ -2,9 +2,7 @@ package com.eje_c.libreastream;
 
 import android.annotation.SuppressLint;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.media.MediaRecorder;
 
 import java.io.IOException;
@@ -15,7 +13,6 @@ public class ReaStream implements AutoCloseable {
     public static final int DEFAULT_PORT = 58710;
     public static final String DEFAULT_IDENTIFIER = "default";
     private static final int FLOAT_BYTE_SIZE = Float.SIZE / Byte.SIZE;
-    private AudioTrack track;
     private AudioRecord record;
     private boolean recording;
     private boolean playing;
@@ -49,15 +46,7 @@ public class ReaStream implements AutoCloseable {
 
     public void startReveiving() {
 
-        if (track == null) {
-            final int channel = AudioFormat.CHANNEL_OUT_STEREO;
-            final int audioFormat = AudioFormat.ENCODING_PCM_FLOAT;
-            bufferSize = AudioTrack.getMinBufferSize(sampleRate, channel, audioFormat);
-            track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT, bufferSize, AudioTrack.MODE_STREAM);
-        }
-
-        if (track.getState() == AudioTrack.STATE_INITIALIZED) {
-            track.play();
+        if (!playing) {
             playing = true;
             new ReceiverThread().start();
         }
@@ -152,16 +141,16 @@ public class ReaStream implements AutoCloseable {
         @Override
         public void run() {
 
-            try (ReaStreamReceiver receiver = new ReaStreamReceiver()) {
+            try (ReaStreamReceiver receiver = new ReaStreamReceiver();
+                 AudioTrackSink audioTrackSink = new AudioTrackSink(sampleRate)) {
+                audioTrackSink.start();
 
                 ReaStream.this.receiver = receiver;
 
-                float[] interleaved = new float[ReaStreamPacket.MAX_BLOCK_LENGTH / ReaStreamPacket.PER_SAMPLE_BYTES];
                 while (playing) {
                     if (enabled) {
                         ReaStreamPacket audioPacket = receiver.receive();
-                        audioPacket.getInterleavedAudioData(interleaved);
-                        track.write(interleaved, 0, audioPacket.blockLength / ReaStreamPacket.PER_SAMPLE_BYTES, AudioTrack.WRITE_NON_BLOCKING);
+                        audioTrackSink.onReceivePacket(audioPacket);
                     }
                 }
 
