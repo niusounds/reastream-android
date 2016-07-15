@@ -9,8 +9,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 
-import com.eje_c.libreastream.ReaStream;
-
 import java.net.UnknownHostException;
 
 @SuppressWarnings("ConstantConditions")

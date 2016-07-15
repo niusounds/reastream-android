@@ -1,6 +1,12 @@
-package com.eje_c.libreastream;
+package com.eje_c.reastream;
 
 import android.annotation.SuppressLint;
+
+import com.eje_c.libreastream.AudioRecordSrc;
+import com.eje_c.libreastream.AudioTrackSink;
+import com.eje_c.libreastream.ReaStreamPacket;
+import com.eje_c.libreastream.ReaStreamReceiver;
+import com.eje_c.libreastream.ReaStreamSender;
 
 import java.io.IOException;
 import java.net.InetAddress;
