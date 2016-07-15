@@ -7,6 +7,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -29,6 +30,8 @@ public class ReaStreamReceiverService extends Service {
     private boolean enabled = true;
     private OnReaStreamPacketListener onReaStreamPacketListener;
     private Future<?> future;
+    private String identifier;
+    private int timeout;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -63,9 +66,18 @@ public class ReaStreamReceiverService extends Service {
     }
 
     public void setIdentifier(String identifier) {
+        this.identifier = identifier;
 
         if (receiver != null) {
             receiver.setIdentifier(identifier);
+        }
+    }
+
+    public void setTimeout(int timeout) throws SocketException {
+        this.timeout = timeout;
+
+        if (receiver != null) {
+            receiver.setTimeout(timeout);
         }
     }
 
@@ -97,6 +109,9 @@ public class ReaStreamReceiverService extends Service {
 
             try (ReaStreamReceiver receiver = new ReaStreamReceiver()) {
                 ReaStreamReceiverService.this.receiver = receiver;
+
+                receiver.setIdentifier(identifier);
+                receiver.setTimeout(timeout);
 
                 while (!Thread.interrupted()) {
                     if (enabled) {
