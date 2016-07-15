@@ -9,7 +9,6 @@ import android.os.IBinder;
 import android.view.View;
 
 import com.eje_c.libreastream.AudioTrackSink;
-import com.eje_c.libreastream.ReaStreamPacket;
 import com.eje_c.libreastream.ReaStreamReceiverService;
 
 public class MainActivity extends Activity {
@@ -18,23 +17,11 @@ public class MainActivity extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((ReaStreamReceiverService.LocalBinder) binder).getService();
-            service.setOnReaStreamPacketListener(listener);
+            service.setOnReaStreamPacketListener(audioTrackSink);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-        }
-    };
-
-    private final ReaStreamReceiverService.OnReaStreamPacketListener listener = new ReaStreamReceiverService.OnReaStreamPacketListener() {
-        @Override
-        public void onReceive(ReaStreamPacket packet) {
-
-            if (packet.isAudioData()) {
-                audioTrackSink.onReceivePacket(packet);
-            } else if (packet.isMidiData()) {
-                // TODO
-            }
         }
     };
 

@@ -4,7 +4,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
-public class AudioTrackSink implements AutoCloseable {
+public class AudioTrackSink implements AutoCloseable, ReaStreamReceiverService.OnReaStreamPacketListener {
 
     private static final int FLOAT_BYTE_SIZE = Float.SIZE / Byte.SIZE;
     private final AudioTrack track;
@@ -46,8 +46,11 @@ public class AudioTrackSink implements AutoCloseable {
         }
     }
 
-    public void onReceivePacket(ReaStreamPacket audioPacket) {
-        audioPacket.getInterleavedAudioData(interleavedSamples);
-        track.write(interleavedSamples, 0, audioPacket.blockLength / ReaStreamPacket.PER_SAMPLE_BYTES, AudioTrack.WRITE_NON_BLOCKING);
+    @Override
+    public void onReceive(ReaStreamPacket packet) {
+        if (packet.isAudioData()) {
+            packet.getInterleavedAudioData(interleavedSamples);
+            track.write(interleavedSamples, 0, packet.blockLength / ReaStreamPacket.PER_SAMPLE_BYTES, AudioTrack.WRITE_NON_BLOCKING);
+        }
     }
 }

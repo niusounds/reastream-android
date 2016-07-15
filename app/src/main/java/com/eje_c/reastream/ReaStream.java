@@ -144,7 +144,7 @@ public class ReaStream implements AutoCloseable {
                     if (enabled) {
                         ReaStreamPacket packet = receiver.receive();
                         if (packet.isAudioData()) {
-                            audioTrackSink.onReceivePacket(packet);
+                            audioTrackSink.onReceive(packet);
                         } else if (packet.isMidiData()) {
                             // TODO
                             System.out.println(Arrays.toString(packet.midiEvents));
