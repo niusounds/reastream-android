@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 
 public class ReaStreamSender implements AutoCloseable {
 
+    public static final int DEFAULT_PORT = 58710;
+    public static final String DEFAULT_IDENTIFIER = "default";
     private final DatagramSocket socket;
     private final DatagramPacket packet;
     private ByteBuffer buffer;
@@ -26,8 +28,8 @@ public class ReaStreamSender implements AutoCloseable {
         this.socket = socket;
         packet = new DatagramPacket(new byte[0], 0);
 
-        setPort(ReaStream.DEFAULT_PORT);
-        setIdentifier(ReaStream.DEFAULT_IDENTIFIER);
+        setPort(DEFAULT_PORT);
+        setIdentifier(DEFAULT_IDENTIFIER);
     }
 
     /**

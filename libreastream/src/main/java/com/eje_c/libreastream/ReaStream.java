@@ -9,8 +9,6 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 public class ReaStream {
-    public static final int DEFAULT_PORT = 58710;
-    public static final String DEFAULT_IDENTIFIER = "default";
     private boolean recording;
     private boolean playing;
     private int sampleRate = 44100;

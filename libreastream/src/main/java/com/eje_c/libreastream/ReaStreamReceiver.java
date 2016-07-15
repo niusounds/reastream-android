@@ -9,11 +9,13 @@ import java.nio.ByteOrder;
 
 public class ReaStreamReceiver implements AutoCloseable {
 
+    public static final int DEFAULT_PORT = 58710;
+    public static final String DEFAULT_IDENTIFIER = "default";
     private final DatagramSocket socket;
     private final DatagramPacket packet;
     private final ReaStreamPacket audioPacket = new ReaStreamPacket();
     private final ByteBuffer buffer;
-    private String identifier = ReaStream.DEFAULT_IDENTIFIER;
+    private String identifier = DEFAULT_IDENTIFIER;
 
     /**
      * Create ReaStream receiver with UDP socket default port.
@@ -21,7 +23,7 @@ public class ReaStreamReceiver implements AutoCloseable {
      * @throws SocketException
      */
     public ReaStreamReceiver() throws SocketException {
-        this(ReaStream.DEFAULT_PORT);
+        this(DEFAULT_PORT);
     }
 
     /**
