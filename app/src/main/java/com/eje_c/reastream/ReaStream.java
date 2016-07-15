@@ -88,6 +88,11 @@ public class ReaStream implements AutoCloseable {
 
     @Override
     public void close() {
+
+        if (sender != null) {
+            sender.close();
+        }
+
         if (receiver != null) {
             receiver.close();
         }
