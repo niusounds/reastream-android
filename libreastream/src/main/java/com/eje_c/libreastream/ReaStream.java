@@ -108,10 +108,11 @@ public class ReaStream {
                 }
 
                 audioRecordSrc.stop();
-                ReaStream.this.sender = null;
 
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                ReaStream.this.sender = null;
             }
         }
     }
@@ -135,10 +136,11 @@ public class ReaStream {
                 }
 
                 audioTrackSink.stop();
-                ReaStream.this.receiver = null;
 
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                ReaStream.this.receiver = null;
             }
         }
     }
