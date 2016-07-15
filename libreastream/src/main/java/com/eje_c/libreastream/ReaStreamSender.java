@@ -14,7 +14,7 @@ public class ReaStreamSender implements AutoCloseable {
     private final DatagramSocket socket;
     private final DatagramPacket packet;
     private ByteBuffer buffer;
-    private ReaStreamPacket audioPacket = new ReaStreamPacket();
+    private ReaStreamPacket reaStreamPacket = new ReaStreamPacket();
 
     public ReaStreamSender() throws SocketException {
         this(new DatagramSocket());
@@ -40,43 +40,57 @@ public class ReaStreamSender implements AutoCloseable {
      * @throws IOException
      */
     public void send(float[] audioData, int readCount) throws IOException {
+        reaStreamPacket.setAudioData(audioData, readCount);
+        prepareAndSendPacket();
+    }
 
-        audioPacket.setAudioData(audioData, readCount);
+    /**
+     * Send ReaStream midi packet.
+     *
+     * @param midiEvents Midi data
+     * @throws IOException
+     */
+    public void send(MidiEvent... midiEvents) throws IOException {
+        reaStreamPacket.setMidiData(midiEvents);
+        prepareAndSendPacket();
+    }
+
+    private void prepareAndSendPacket() throws IOException {
 
         // Create buffer
-        if (!audioPacket.isCapableBuffer(buffer)) {
-            buffer = audioPacket.createCapableBuffer();
+        if (!reaStreamPacket.isCapableBuffer(buffer)) {
+            buffer = reaStreamPacket.createCapableBuffer();
             packet.setData(buffer.array());
         }
 
-        audioPacket.writeToBuffer(buffer);
+        reaStreamPacket.writeToBuffer(buffer);
 
-        packet.setLength(audioPacket.packetSize);
+        packet.setLength(reaStreamPacket.packetSize);
         socket.send(packet);
     }
 
     public void setIdentifier(String identifier) {
-        audioPacket.setIdentifier(identifier);
+        reaStreamPacket.setIdentifier(identifier);
     }
 
     public String getIdentifier() {
-        return audioPacket.getIdentifier();
+        return reaStreamPacket.getIdentifier();
     }
 
     public void setSampleRate(int sampleRate) {
-        audioPacket.sampleRate = sampleRate;
+        reaStreamPacket.sampleRate = sampleRate;
     }
 
     public int getSampleRate() {
-        return audioPacket.sampleRate;
+        return reaStreamPacket.sampleRate;
     }
 
     public void setChannels(byte channels) {
-        audioPacket.channels = channels;
+        reaStreamPacket.channels = channels;
     }
 
     public byte getChannels() {
-        return audioPacket.channels;
+        return reaStreamPacket.channels;
     }
 
     public void setRemoteAddress(InetAddress remoteAddress) {
