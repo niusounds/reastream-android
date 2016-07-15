@@ -10,7 +10,6 @@ public class AudioRecordSrc implements AutoCloseable {
     private final AudioRecord record;
     private final float[] recordBuffer;
     private final FloatBuffer floatBuffer;
-    private boolean recording;
 
     public AudioRecordSrc(int sampleRate) {
         final int channel = AudioFormat.CHANNEL_IN_MONO;
@@ -21,18 +20,19 @@ public class AudioRecordSrc implements AutoCloseable {
         recordBuffer = floatBuffer.array();
     }
 
+    /**
+     * Must call this before first {@link #read()}.
+     */
     public void start() {
 
-        if (!recording) {
+        if (record.getRecordingState() == AudioRecord.RECORDSTATE_STOPPED) {
             record.startRecording();
-            recording = true;
         }
     }
 
     public void stop() {
 
-        if (recording) {
-            recording = false;
+        if (record.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
             record.stop();
         }
     }
@@ -44,7 +44,11 @@ public class AudioRecordSrc implements AutoCloseable {
         }
     }
 
-
+    /**
+     * Read audio data from {@link android.media.AudioTrack} and return it.
+     *
+     * @return Audio data FloatBuffer.
+     */
     public FloatBuffer read() {
 
         int readCount = record.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_NON_BLOCKING);

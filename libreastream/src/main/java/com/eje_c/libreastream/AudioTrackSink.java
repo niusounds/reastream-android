@@ -9,7 +9,6 @@ public class AudioTrackSink implements AutoCloseable, ReaStreamReceiverService.O
     private static final int FLOAT_BYTE_SIZE = Float.SIZE / Byte.SIZE;
     private final AudioTrack track;
     private final float[] interleavedSamples = new float[ReaStreamPacket.MAX_BLOCK_LENGTH / ReaStreamPacket.PER_SAMPLE_BYTES];
-    private boolean started;
 
     public AudioTrackSink(int sampleRate) {
         int bufferSize = Math.max(
@@ -19,24 +18,21 @@ public class AudioTrackSink implements AutoCloseable, ReaStreamReceiverService.O
         track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT, bufferSize, AudioTrack.MODE_STREAM);
     }
 
+    /**
+     * Must call this before first {@link #onReceive(ReaStreamPacket)}.
+     */
     public void start() {
 
-        if (!started) {
+        if (track.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
             track.play();
-            started = true;
         }
     }
 
     public void stop() {
 
-        if (started) {
-            started = false;
+        if (track.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
             track.stop();
         }
-    }
-
-    public boolean isStarted() {
-        return started;
     }
 
     @Override
