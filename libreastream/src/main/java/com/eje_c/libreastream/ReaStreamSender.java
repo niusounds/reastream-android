@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class ReaStreamSender implements AutoCloseable {
 
@@ -40,8 +41,21 @@ public class ReaStreamSender implements AutoCloseable {
      * @throws IOException
      */
     public void send(float[] audioData, int readCount) throws IOException {
-        reaStreamPacket.setAudioData(audioData, readCount);
-        prepareAndSendPacket();
+
+        int offset = 0;
+
+        while (true) {
+            int remaining = readCount - offset;
+            if (remaining <= 0) break;
+
+            int length = Math.min(remaining, ReaStreamPacket.MAX_BLOCK_LENGTH / ReaStreamPacket.PER_SAMPLE_BYTES);
+            float[] part = Arrays.copyOfRange(audioData, offset, offset + length);
+
+            reaStreamPacket.setAudioData(part, length);
+            prepareAndSendPacket();
+
+            offset += length;
+        }
     }
 
     /**
