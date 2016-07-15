@@ -1,5 +1,6 @@
 package com.eje_c.reastream;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -14,12 +15,15 @@ import java.net.UnknownHostException;
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity {
     private ReaStream reaStream;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         reaStream = new ReaStream();
+
+        prefs = getSharedPreferences("app_status", MODE_PRIVATE);
 
         EditText identifier = (EditText) findViewById(R.id.input_identifier);
         identifier.addTextChangedListener(new TextWatcher() {
@@ -33,9 +37,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                reaStream.setIdentifier(s.toString());
+                final String newVal = s.toString();
+                prefs.edit().putString("identifier", newVal).apply();
+                reaStream.setIdentifier(newVal);
             }
         });
+
+        final String defaultIdentifier = prefs.getString("identifier", null);
+        if (defaultIdentifier != null) {
+            identifier.setText(defaultIdentifier);
+        }
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup_mode);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -85,16 +96,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                final String addr = s.toString();
-                if (addr.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
+                final String newVal = s.toString();
+
+                // Check IP address format
+                if (newVal.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
+                    prefs.edit().putString("remoteAddress", newVal).apply();
                     try {
-                        reaStream.setRemoteAddress(addr);
+                        reaStream.setRemoteAddress(newVal);
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
                 }
             }
         });
+
+        final String defaultRemoteAddress = prefs.getString("remoteAddress", null);
+        if (defaultRemoteAddress != null) {
+            remoteAddress.setText(defaultRemoteAddress);
+        }
 
         try {
             reaStream.setRemoteAddress(remoteAddress.getText().toString());
