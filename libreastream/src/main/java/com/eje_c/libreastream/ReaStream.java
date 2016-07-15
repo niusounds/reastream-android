@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 public class ReaStream {
     public static final int DEFAULT_PORT = 58710;
@@ -130,8 +131,13 @@ public class ReaStream {
 
                 while (playing) {
                     if (enabled) {
-                        ReaStreamPacket audioPacket = receiver.receive();
-                        audioTrackSink.onReceivePacket(audioPacket);
+                        ReaStreamPacket packet = receiver.receive();
+                        if (packet.isAudioData()) {
+                            audioTrackSink.onReceivePacket(packet);
+                        } else if (packet.isMidiData()) {
+                            // TODO
+                            System.out.println(Arrays.toString(packet.midiEvents));
+                        }
                     }
                 }
 

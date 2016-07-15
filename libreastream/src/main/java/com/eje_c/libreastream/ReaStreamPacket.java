@@ -18,6 +18,7 @@ public class ReaStreamPacket {
     public int sampleRate = 44100;                 // 4 bytes: int samplerate
     public short blockLength;                      // 2 bytes: short sblocklen -- largest supported is 1200 (larger blocks are separated)
     public float[] audioData;                      // sblocklen bytes: sample data (32 bit floats, non-interleaved)
+    public MidiEvent[] midiEvents;
 
     /**
      * Set identifier with String.
@@ -47,6 +48,7 @@ public class ReaStreamPacket {
     public boolean readFromBuffer(ByteBuffer buffer) {
         buffer.position(0);
 
+        // Audio packet
         if (buffer.get() == (byte) 77// M
                 && buffer.get() == (byte) 82 // R
                 && buffer.get() == (byte) 83 // S
@@ -68,6 +70,44 @@ public class ReaStreamPacket {
                 audioData[i] = buffer.getFloat();
             }
 
+            midiEvents = null;
+            return true;
+        }
+
+        buffer.position(0);
+
+        // MIDI packet
+        if (buffer.get() == (byte) 109 // m
+                && buffer.get() == (byte) 82  // R
+                && buffer.get() == (byte) 83  // S
+                && buffer.get() == (byte) 82  // R
+                ) {
+
+            packetSize = buffer.getInt();
+            buffer.get(identifier);
+
+            int eventsBytes = packetSize - 4 - 4 - 32;
+            int eventCount = eventsBytes / MidiEvent.BYTE_SIZE;
+
+            midiEvents = new MidiEvent[eventCount];
+            for (int i = 0; i < eventCount; i++) {
+                final MidiEvent midiEvent = new MidiEvent();
+                midiEvent.type = buffer.getInt();
+                midiEvent.byteSize = buffer.getInt();
+                midiEvent.sampleFramesSinceLastEvet = buffer.getInt();
+                midiEvent.flags = buffer.getInt();
+                midiEvent.noteLength = buffer.getInt();
+                midiEvent.noteOffset = buffer.getInt();
+                buffer.get(midiEvent.midiData);
+                buffer.get(); // Reserved 0
+                midiEvent.detune = buffer.get();
+                midiEvent.noteOffVelocity = buffer.get();
+                midiEvents[i] = midiEvent;
+                buffer.get(); // Reserved 0
+                buffer.get(); // Reserved 0
+            }
+
+            audioData = null;
             return true;
         }
 
@@ -149,5 +189,13 @@ public class ReaStreamPacket {
                 outInterleavedAudioData[i * channels + ch] = audioData[samplesPerChannel * ch + i];
             }
         }
+    }
+
+    public boolean isAudioData() {
+        return audioData != null;
+    }
+
+    public boolean isMidiData() {
+        return midiEvents != null;
     }
 }
