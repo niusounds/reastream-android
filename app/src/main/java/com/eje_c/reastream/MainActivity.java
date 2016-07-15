@@ -85,10 +85,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                try {
-                    reaStream.setRemoteAddress(s.toString());
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
+                final String addr = s.toString();
+                if (addr.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
+                    try {
+                        reaStream.setRemoteAddress(addr);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
