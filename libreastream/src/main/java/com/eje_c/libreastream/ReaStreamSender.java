@@ -44,7 +44,10 @@ public class ReaStreamSender implements AutoCloseable {
 
         int offset = 0;
 
+        // Max audio frames are ReaStreamPacket.MAX_BLOCK_LENGTH bytes.
+        // Split to multiple packets.
         while (true) {
+
             int remaining = readCount - offset;
             if (remaining <= 0) break;
 
