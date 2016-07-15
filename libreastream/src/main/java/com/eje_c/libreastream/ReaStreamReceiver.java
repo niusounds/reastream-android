@@ -80,6 +80,20 @@ public class ReaStreamReceiver implements AutoCloseable {
     }
 
     /**
+     * Sets the read timeout in milliseconds for this socket.
+     * This receive timeout defines the period the socket will block waiting to
+     * receive data before throwing an {@code InterruptedIOException}. The value
+     * {@code 0} (default) is used to set an infinite timeout. To have effect
+     * this option must be set before the blocking method was called.
+     *
+     * @param timeout the timeout in milliseconds or 0 for no timeout.
+     * @throws SocketException if an error occurs while setting the option.
+     */
+    public void setTimeout(int timeout) throws SocketException {
+        socket.setSoTimeout(timeout);
+    }
+
+    /**
      * Close UDP socket.
      */
     @Override
