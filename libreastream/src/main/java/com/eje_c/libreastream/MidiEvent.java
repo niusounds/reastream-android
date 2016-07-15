@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class MidiEvent {
     public static final int BYTE_SIZE = 4 + 4 + 4 + 4 + 4 + 4 + 3 + 1 + 1 + 1 + 2;
-    public int type;
+    public int type = 1;
     public int byteSize;
     public int sampleFramesSinceLastEvet;
     public int flags;

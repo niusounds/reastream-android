@@ -10,14 +10,23 @@ public class ReaStreamPacket {
 
     public static final short MAX_BLOCK_LENGTH = 1200;
     public static final int PER_SAMPLE_BYTES = Float.SIZE / Byte.SIZE;
-    public static final int PACKET_HEADER_BYTE_SIZE = 4 + 4 + 32 + 1 + 4 + 2;
+    public static final int AUDIO_PACKET_HEADER_BYTE_SIZE = 4 + 4 + 32 + 1 + 4 + 2;
+    public static final int MIDI_PACKET_HEADER_BYTE_SIZE = 4 + 4 + 32;
 
-    public int packetSize;                         // 4 bytes: int packetsize: 4+4+32+1+4+2+sblocklen
-    public final byte[] identifier = new byte[32]; // 32 bytes: identifier string (zero padded, last byte always 0)
-    public byte channels = 1;                      // 1 byte: char nch [1-64]
-    public int sampleRate = 44100;                 // 4 bytes: int samplerate
-    public short blockLength;                      // 2 bytes: short sblocklen -- largest supported is 1200 (larger blocks are separated)
-    public float[] audioData;                      // sblocklen bytes: sample data (32 bit floats, non-interleaved)
+    public int packetSize;
+
+    /*
+     * TODO It should be separated classes
+     */
+
+    // audio data
+    public final byte[] identifier = new byte[32];
+    public byte channels = 1;
+    public int sampleRate = 44100;
+    public short blockLength;
+    public float[] audioData;
+
+    // MIDI data
     public MidiEvent[] midiEvents;
 
     /**
@@ -123,18 +132,46 @@ public class ReaStreamPacket {
 
         buffer.position(0);
 
-        buffer.put((byte) 77); // M
-        buffer.put((byte) 82); // R
-        buffer.put((byte) 83); // S
-        buffer.put((byte) 82); // R
-        buffer.putInt(packetSize);
-        buffer.put(identifier);
-        buffer.put(channels); // ch
-        buffer.putInt(sampleRate);
-        buffer.putShort(blockLength);
+        if (isAudioData()) {
 
-        for (int i = 0; i < blockLength / PER_SAMPLE_BYTES; i++) {
-            buffer.putFloat(audioData[i]);
+            buffer.put((byte) 77); // M
+            buffer.put((byte) 82); // R
+            buffer.put((byte) 83); // S
+            buffer.put((byte) 82); // R
+            buffer.putInt(packetSize);
+            buffer.put(identifier);
+            buffer.put(channels); // ch
+            buffer.putInt(sampleRate);
+            buffer.putShort(blockLength);
+
+            for (int i = 0; i < blockLength / PER_SAMPLE_BYTES; i++) {
+                buffer.putFloat(audioData[i]);
+            }
+
+        } else if (isMidiData()) {
+
+            buffer.put((byte) 109); // M
+            buffer.put((byte) 82); // R
+            buffer.put((byte) 83); // S
+            buffer.put((byte) 82); // R
+            buffer.putInt(packetSize);
+            buffer.put(identifier);
+
+            for (MidiEvent midiEvent : midiEvents) {
+
+                buffer.putInt(midiEvent.type);
+                buffer.putInt(midiEvent.byteSize);
+                buffer.putInt(midiEvent.sampleFramesSinceLastEvet);
+                buffer.putInt(midiEvent.flags);
+                buffer.putInt(midiEvent.noteLength);
+                buffer.putInt(midiEvent.noteOffset);
+                buffer.put(midiEvent.midiData);
+                buffer.put((byte) 0); // Reserved 0
+                buffer.put(midiEvent.detune);
+                buffer.put(midiEvent.noteOffVelocity);
+                buffer.put((byte) 0); // Reserved 0
+                buffer.put((byte) 0); // Reserved 0
+            }
         }
     }
 
@@ -150,8 +187,21 @@ public class ReaStreamPacket {
 
         // TODO 2 or above channels support
         this.blockLength = (short) (sampleCount * PER_SAMPLE_BYTES);
-        this.packetSize = PACKET_HEADER_BYTE_SIZE + blockLength;
+        this.packetSize = AUDIO_PACKET_HEADER_BYTE_SIZE + blockLength;
         this.audioData = audioData;
+        this.midiEvents = null;
+    }
+
+    /**
+     * Set MIDI data.
+     *
+     * @param midiEvents MIDI data.
+     */
+    public void setMidiData(MidiEvent... midiEvents) {
+
+        this.packetSize = MIDI_PACKET_HEADER_BYTE_SIZE + MidiEvent.BYTE_SIZE * midiEvents.length;
+        this.midiEvents = midiEvents;
+        this.audioData = null;
     }
 
     /**

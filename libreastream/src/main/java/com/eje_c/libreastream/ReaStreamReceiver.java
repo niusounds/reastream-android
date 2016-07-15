@@ -42,7 +42,7 @@ public class ReaStreamReceiver implements AutoCloseable {
      * @param socket Pre-created socket
      */
     public ReaStreamReceiver(DatagramSocket socket) {
-        buffer = ByteBuffer.allocate(ReaStreamPacket.MAX_BLOCK_LENGTH + ReaStreamPacket.PACKET_HEADER_BYTE_SIZE);
+        buffer = ByteBuffer.allocate(ReaStreamPacket.MAX_BLOCK_LENGTH + ReaStreamPacket.AUDIO_PACKET_HEADER_BYTE_SIZE);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         packet = new DatagramPacket(buffer.array(), buffer.capacity());
         this.socket = socket;
