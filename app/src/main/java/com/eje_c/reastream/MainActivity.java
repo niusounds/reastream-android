@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        reaStream.close();
         super.onDestroy();
     }
 }

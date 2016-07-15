@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 
-public class ReaStream {
+public class ReaStream implements AutoCloseable {
     private boolean recording;
     private boolean playing;
     private int sampleRate = 44100;
@@ -83,6 +83,13 @@ public class ReaStream {
 
         if (sender != null) {
             sender.setRemoteAddress(remoteAddress);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (receiver != null) {
+            receiver.close();
         }
     }
 
